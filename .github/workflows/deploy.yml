@@ -44,7 +44,7 @@ jobs:
 
       - name: Deploy via Bastion Host
         run: |
-         ssh -i ~/.ssh/id_rsa -o ProxyCommand="ssh -i ~/.ssh/id_rsa -W %h:%p  ubuntu@44.201.110.145" \
+         ssh -i ~/.ssh/id_rsa -o ProxyCommand="ssh -i ~/.ssh/id_rsa -W %h:%p ubuntu@44.201.110.145" \
             ubuntu@10.0.20.208 << 'EOF'
             docker pull dockerfastapi-web:tag
             docker stop meu-container || true
