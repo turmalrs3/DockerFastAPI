@@ -36,8 +36,8 @@ jobs:
 
       - name: Deploy via Bastion Host
         run: |
-            docker pull dockerfastapi-web:tag
-            docker stop meu-container || true
-            docker rm meu-container || true
-            docker run -d --name meu-container -p 8004:8004 dockerfastapi-web:tag
+            sudo docker pull dockerfastapi-web:tag
+            sudo docker stop meu-container || true
+            sudo docker rm meu-container || true
+            sudo docker run -d --name meu-container -p 8004:8004 dockerfastapi-web:tag
          
