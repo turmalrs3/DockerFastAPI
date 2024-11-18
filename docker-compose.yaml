@@ -1,0 +1,10 @@
+version: '3'
+
+services:
+  web:
+    build: .
+    command: sh -c "python main.py"
+    ports:
+      - 8004:8004
+    volumes:
+      - .:/app
