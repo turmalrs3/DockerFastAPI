@@ -40,18 +40,11 @@ jobs:
     runs-on: self-hosted
 
     steps:
-
-      # Passo 3: Fazendo login no Docker Hub (ou AWS ECR)
-      - name: Log in to Docker Hub
-        uses: docker/login-action@v2
-        with:
-          username: ${{ secrets.DOCKER_USERNAME }}  # Armazenado em GitHub Secrets
-          password: ${{ secrets.DOCKER_PASSWORD }}  # Armazenado em GitHub Secrets
           
       - name: Deploy via Bastion Host
         run: |
-            sudo docker pull dockerfastapi-web:tag
+            sudo docker pull s041maya/dockerfastapi-web:latest
             sudo docker stop meu-container || true
             sudo docker rm meu-container || true
-            sudo docker run -d --name meu-container -p 8004:8004 dockerfastapi-web:tag
+            sudo docker run -d --name meu-container -p 8004:8004 s041maya/dockerfastapi-web:latest
          
