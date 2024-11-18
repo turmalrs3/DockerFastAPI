@@ -183,7 +183,7 @@ async def update_patient(patient_id: int, item: Patient):
         )
 
         if result.rowcount == 0:
-            return {"status": "error", "message": "Patient not found"}
+            return {"status": "error", "message": "Patient not found sss"}
         
         db_session.commit()
         return {"status": "success", "message": "Patient updated successfully."}
