@@ -7,7 +7,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
 
     steps:
       # Passo 1: Fazendo checkout do código
@@ -34,20 +34,10 @@ jobs:
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/dockerfastapi-web:${{ github.sha }}  # Usando o SHA do commit como versão
 
-      - name: Configure SSH access to Bastion Host
-        run: |
-            mkdir -p ~/.ssh
-            echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
-            chmod 600 ~/.ssh/id_rsa
-            echo "StrictHostKeyChecking no" >> ~/.ssh/config
-            echo "UserKnownHostsFile /dev/null" >> ~/.ssh/config
-
       - name: Deploy via Bastion Host
         run: |
-         ssh -i ~/.ssh/id_rsa -o ProxyCommand="ssh -i ~/.ssh/id_rsa -W %h:%p ubuntu@44.201.110.145" \
-            ubuntu@10.0.20.208 << 'EOF'
             docker pull dockerfastapi-web:tag
             docker stop meu-container || true
             docker rm meu-container || true
             docker run -d --name meu-container -p 8004:8004 dockerfastapi-web:tag
-         EOF
+         
