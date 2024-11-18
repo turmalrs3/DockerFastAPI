@@ -25,11 +25,6 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}  # Armazenado em GitHub Secrets
           password: ${{ secrets.DOCKER_PASSWORD }}  # Armazenado em GitHub Secrets
 
-
-  deploy:
-    runs-on: self-hosted
-
-    steps:
       # Passo 4: Construindo a imagem Docker e fazendo o push
       - name: Build and push Docker image
         uses: docker/build-push-action@v2
@@ -38,6 +33,13 @@ jobs:
           file: ./Dockerfile
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/dockerfastapi-web:${{ github.sha }}  # Usando o SHA do commit como versão
+
+
+  deploy:
+    needs: build
+    runs-on: self-hosted
+
+    steps:
 
       - name: Deploy via Bastion Host
         run: |
