@@ -186,7 +186,7 @@ async def update_patient(patient_id: int, item: Patient):
             return {"status": "error", "message": "Patient not found"}
         
         db_session.commit()
-        return {"status": "success", "message": "Patient updated successfully ddd."}
+        return {"status": "success", "message": "Patient updated successfully."}
         
     except SQLAlchemyError as e:
         db_session.rollback()
@@ -195,6 +195,7 @@ async def update_patient(patient_id: int, item: Patient):
     
     finally:
         db_session.close()
+
 
 # Start service
 if __name__ == "__main__":
