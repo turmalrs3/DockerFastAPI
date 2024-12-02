@@ -58,7 +58,7 @@ async def get_patient(patient_id: int):
         
         async with httpx.AsyncClient() as client:
             # Request ao servico que tem o get gender by id
-            gender_response = await client.get(f"http://127.0.0.1:8005/gender/{results['GenderID']}")
+            gender_response = await client.get(f"http://3.88.215.11:8005/gender/{results['GenderID']}")
 
             user_gender = gender_response.json().get("data")
             results = dict(results)
@@ -82,7 +82,7 @@ async def get_patients():
 
         async with httpx.AsyncClient() as client:
             # Verificar todos o genero de todos os pacientes juntos
-            tasks = [client.get(f"http://127.0.0.1:8005/gender/{patient['GenderID']}") for patient in patients_list]
+            tasks = [client.get(f"http://3.88.215.11:8005/gender/{patient['GenderID']}") for patient in patients_list]
 
             gender_responses = await asyncio.gather(*tasks)
 
