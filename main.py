@@ -14,7 +14,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from pydantic import BaseModel
 from datetime import datetime, date
 
-DB_INFO = "mysql+pymysql://admin:turmalrs1234@terraform-20241028192601220800000001.cv0ucuyse8jo.us-east-1.rds.amazonaws.com:3306/saudeplusdb"
+DB_INFO = "mysql+pymysql://admin:turmalrs1234@terraform-20241129194814887300000007.chye8488mdam.us-east-1.rds.amazonaws.com:3306/saudeplusdb"
 
 engine = create_engine(DB_INFO, echo=True)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
