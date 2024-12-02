@@ -18,7 +18,7 @@ DB_INFO = "mysql+pymysql://admin:turmalrs1234@terraform-202411291948148873000000
 
 engine = create_engine(DB_INFO, echo=True)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-app = FastAPI()
+app = FastAPI(root_path="/service4")
 
 
 # Para usar na criacao de dados
