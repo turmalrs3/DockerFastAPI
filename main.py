@@ -201,10 +201,9 @@ async def update_patient(patient_id: int, item: Patient):
 
 # APPOINTMENTS
 
-# CREATE APPOINTMENT
 @app.post("/create_appointment", tags=["Appointments"])
-async def create_appointment_with_treatments(
-    appointment_data: Appointment, treatments: List[int]
+async def create_appointment(
+    appointment_data: Appointment
 ):
     db_session = SessionLocal()
 
@@ -230,8 +229,30 @@ async def create_appointment_with_treatments(
 
         db_session.commit()
 
-        appointment_id = db_session.execute("SELECT LAST_INSERT_ID()").scalar()
+        return {
+            "status": "success",
+            "message": "Appointment created successfully."
+        }
 
+    except Exception as e:
+        db_session.rollback()
+        error_message = str(e)
+        return {
+            "status": "error",
+            "message": "Error creating appointment.",
+            "details": error_message,
+        }
+
+    finally:
+        db_session.close()
+
+@app.post("/create_treatments", tags=["Appointments"])
+async def create_treatments(
+    appointment_id: int, treatments: List[int]
+):
+    db_session = SessionLocal()
+
+    try:
         for treatment_id in treatments:
             db_session.execute(
                 text(
@@ -247,8 +268,7 @@ async def create_appointment_with_treatments(
 
         return {
             "status": "success",
-            "message": "Appointment and treatments created successfully.",
-            "appointment_id": appointment_id,
+            "message": "Treatments added successfully to appointment."
         }
 
     except Exception as e:
@@ -256,7 +276,7 @@ async def create_appointment_with_treatments(
         error_message = str(e)
         return {
             "status": "error",
-            "message": "Error creating appointment and treatments.",
+            "message": "Error adding treatments to appointment.",
             "details": error_message,
         }
 
@@ -276,6 +296,33 @@ async def get_appointment(appointment_id: int):
 
     except Exception as e:
         return {"status": "error", "message": f"Error retrieving appointment: {str(e)}"}
+
+
+# GET TREATMENTS BY APPOINTMENT ID
+@app.get("/appointment_treatments/{appointment_id}", tags=["Appointments"])
+async def get_treatments_by_appointment(appointment_id: int):
+    db_session = SessionLocal()
+
+    try:
+        result = db_session.execute(
+            text("SELECT * FROM AppointmentTreatment WHERE AppointmentID = :appointment_id"),
+            {"appointment_id": appointment_id},
+        )
+        results = result.fetchall()
+
+        treatments_list = [dict(row) for row in results]
+
+        return {
+            "status": "success",
+            "data": treatments_list
+        }
+
+    except Exception as e:
+        return {
+            "status": "error",
+            "message": f"Error retrieving treatments for appointment {appointment_id}: {str(e)}"
+        }
+
 
 # GET ALL APPOINTMENTS
 @app.get("/appointments", tags=["Appointments"])
