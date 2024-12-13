@@ -13,6 +13,7 @@ from sqlalchemy.exc import SQLAlchemyError
 # Classes
 from pydantic import BaseModel
 from datetime import datetime, date
+from typing import List
 
 DB_INFO = "mysql+pymysql://admin:turmalrs1234@terraform-20241129194814887300000007.chye8488mdam.us-east-1.rds.amazonaws.com:3306/saudeplusdb"
 
@@ -34,7 +35,6 @@ class Patient(BaseModel):
     HealthInsuranceID: int
 
 
-# Verificar ClinicID
 class Appointment(BaseModel):
     PatientID: int
     DoctorID: int
@@ -44,7 +44,6 @@ class Appointment(BaseModel):
     ReasonForVisit: str
     DoctorNotes: str
     CheckInStatus: bool
-    TreatmentID: int
 
 
 # GET PATIENT BY ID
@@ -97,7 +96,7 @@ async def get_patients():
 
     except Exception as e:
         return {"status": "error", "message": f"Error retrieving patients: {str(e)}"}
-    
+
 # CREATE PATIENT
 @app.post("/create_patient", tags=["Patients"])
 async def create_patient(item: Patient):
@@ -204,35 +203,62 @@ async def update_patient(patient_id: int, item: Patient):
 
 # CREATE APPOINTMENT
 @app.post("/create_appointment", tags=["Appointments"])
-async def create_appointment(item: Appointment):
+async def create_appointment_with_treatments(
+    appointment_data: Appointment, treatments: List[int]
+):
     db_session = SessionLocal()
 
     try:
         db_session.execute(
-            text(""" INSERT INTO Appointment (PatientID, DoctorID, DoctorClinicID, AppointmentDateTime, AppointmentStatusID, ReasonForVisit, DoctorNotes, CheckInStatus, TreatmentID)
-                VALUES (:PatientID, :DoctorID, :DoctorClinicID, :AppointmentDateTime, :AppointmentStatusID, :ReasonForVisit, :DoctorNotes, :CheckInStatus, :TreatmentID )"""),
+            text(
+                """ 
+                INSERT INTO Appointment (PatientID, DoctorID, DoctorClinicID, AppointmentDateTime, AppointmentStatusID, ReasonForVisit, DoctorNotes, CheckInStatus)
+                VALUES (:PatientID, :DoctorID, :DoctorClinicID, :AppointmentDateTime, :AppointmentStatusID, :ReasonForVisit, :DoctorNotes, :CheckInStatus)
+                """
+            ),
             {
-                "PatientID": item.PatientID,
-                "DoctorID": item.DoctorID,
-                "DoctorClinicID": item.DoctorClinicID,
-                "AppointmentDateTime": item.AppointmentDateTime,
-                "AppointmentStatusID": item.AppointmentStatusID,
-                "ReasonForVisit": item.ReasonForVisit,
-                "DoctorNotes": item.DoctorNotes,
-                "CheckInStatus": item.CheckInStatus,
-                "TreatmentID": item.TreatmentID
-            }
+                "PatientID": appointment_data.PatientID,
+                "DoctorID": appointment_data.DoctorID,
+                "DoctorClinicID": appointment_data.DoctorClinicID,
+                "AppointmentDateTime": appointment_data.AppointmentDateTime,
+                "AppointmentStatusID": appointment_data.AppointmentStatusID,
+                "ReasonForVisit": appointment_data.ReasonForVisit,
+                "DoctorNotes": appointment_data.DoctorNotes,
+                "CheckInStatus": appointment_data.CheckInStatus,
+            },
         )
+
         db_session.commit()
 
-        return {"status": "success", "message": "Appointment created."}
+        appointment_id = db_session.execute("SELECT LAST_INSERT_ID()").scalar()
 
-    except SQLAlchemyError as e:
+        for treatment_id in treatments:
+            db_session.execute(
+                text(
+                    """ 
+                    INSERT INTO AppointmentTreatment (AppointmentID, TreatmentID)
+                    VALUES (:AppointmentID, :TreatmentID)
+                    """
+                ),
+                {"AppointmentID": appointment_id, "TreatmentID": treatment_id},
+            )
+
+        db_session.commit()
+
+        return {
+            "status": "success",
+            "message": "Appointment and treatments created successfully.",
+            "appointment_id": appointment_id,
+        }
+
+    except Exception as e:
         db_session.rollback()
-
-        error_message = str(e.__dict__.get("orig"))
-        
-        return {"status": "error", "message": "Error creating appointment.", "details": error_message}
+        error_message = str(e)
+        return {
+            "status": "error",
+            "message": "Error creating appointment and treatments.",
+            "details": error_message,
+        }
 
     finally:
         db_session.close()
