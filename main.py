@@ -46,7 +46,7 @@ class Appointment(BaseModel):
     CheckInStatus: bool
 
 
-# GET PATIENT BY ID
+# GET PATIENT BY PatientID
 @app.get("/patient/{patient_id}", tags=["Patients"])
 async def get_patient(patient_id: int):
     db_session = SessionLocal()
@@ -57,6 +57,32 @@ async def get_patient(patient_id: int):
         
         async with httpx.AsyncClient() as client:
             # Request ao servico que tem o get gender by id
+            gender_response = await client.get(f"http://10.0.20.99:8005/gender/{results['GenderID']}")
+
+            user_gender = gender_response.json().get("data")
+            results = dict(results)
+            results["Gender"] = user_gender["Gender"]
+
+        return {"status": "success", "data": results}
+
+    except Exception as e:
+        return {"status": "error", "message": f"Error retrieving patient: {str(e)}"}
+
+
+# GET PATIENT BY UserBdID
+@app.get("/patientbdid/{userbd_id}", tags=["Patients"])
+async def get_patient_bdid(userbd_id: int):
+    db_session = SessionLocal()
+
+    try:
+        result = db_session.execute(text("SELECT * FROM Patient WHERE UserBdID = :userbd_id"), {"userbd_id": userbd_id})
+        results = result.fetchone()
+
+        if not results:
+            return {"status": "error", "message": "Patient not found"}
+
+        async with httpx.AsyncClient() as client:
+            # Request the gender by GenderID
             gender_response = await client.get(f"http://10.0.20.99:8005/gender/{results['GenderID']}")
 
             user_gender = gender_response.json().get("data")
